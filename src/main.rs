@@ -1,4 +1,7 @@
 #[macro_use]
+extern crate rbatis;
+
+#[macro_use]
 use actix_session::CookieSession;
 use actix_web::{web, App, HttpServer};
 use std::sync::Arc;
@@ -6,6 +9,7 @@ use std::sync::Mutex;
 
 use rand::Rng;
 
+mod db;
 mod handler;
 mod tests;
 
