@@ -9,7 +9,16 @@ pub struct GetPubkeyReq {
     opener: Vec<String>,
 }
 
-pub async fn pubkey(phone_number: web::Json<GetPubkeyReq>) -> impl Responder {
+#[derive(Deserialize, Serialize)]
+pub struct GetPubkeyResp {
+    pubkey: String,
+}
+
+pub async fn pubkey(_openers: web::Json<GetPubkeyReq>) -> impl Responder {
     println!("hello");
-    HttpResponse::Ok().body("Hello world")
+    HttpResponse::Ok()
+        .json(GetPubkeyResp {
+            pubkey: "".to_string(),
+        })
+        .await
 }
