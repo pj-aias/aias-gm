@@ -2,6 +2,7 @@ use crate::db::Credential;
 use crate::init_opener;
 use actix_web::{web, HttpResponse};
 use distributed_bss::opener::OpenerId;
+use distributed_bss::OPK;
 use rand::thread_rng;
 
 use crate::open;
@@ -23,6 +24,17 @@ pub struct GetPubkeyResp {
 pub struct GetSignedKeyReq {
     pub pubkey: String,
     pub openers: Vec<String>,
+}
+
+#[derive(Clone, Serialize, Deserialize)]
+pub struct SignPubkeyReq {
+    pub openers: Vec<String>,
+    pub unsigned_pubkey: OPK,
+}
+
+#[derive(Clone, Serialize, Deserialize)]
+pub struct SignPubkeyResp {
+    pub signed_pubkey: OPK,
 }
 
 use crate::db;
@@ -49,19 +61,19 @@ pub async fn pubkey(openers: web::Json<GetPubkeyReq>) -> Result<HttpResponse, ac
 }
 
 pub async fn generate_signed_pubkey(
-    req: web::Json<open::GenPubkeyReq>,
+    req: web::Json<SignPubkeyReq>,
 ) -> Result<HttpResponse, actix_web::Error> {
     let unsigned_pubkey = req.unsigned_pubkey;
     let mut rng = thread_rng();
 
     let opener = init_opener(OpenerId::One, &mut rng).await;
-    let unsigned_pubkey = distributed_bss::OPK {
-        pubkey: unsigned_pubkey,
-    };
 
     let signed_pubkey = opener.gen_pubkey(&unsigned_pubkey);
+    let signed_pubkey = OPK {
+        pubkey: signed_pubkey,
+    };
 
     HttpResponse::Ok()
-        .json(open::GenPubkeyResp { signed_pubkey })
+        .json(SignPubkeyResp { signed_pubkey })
         .await
 }

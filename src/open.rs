@@ -4,23 +4,16 @@ use distributed_bss::opener::{Opener, OpenerId};
 use rand::thread_rng;
 use rand::Rng;
 use rbatis::rbatis::Rbatis;
-use serde::{Deserialize, Serialize};
 use std::env;
+
+use distributed_bss::OPK;
+
+use crate::handler::SignPubkeyReq;
+use crate::handler::SignPubkeyResp;
 
 use bls12_381::G1Projective;
 
 use crate::db;
-
-#[derive(Clone, Serialize, Deserialize)]
-pub struct GenPubkeyReq {
-    pub openers: Vec<String>,
-    pub unsigned_pubkey: G1Projective,
-}
-
-#[derive(Clone, Serialize, Deserialize)]
-pub struct GenPubkeyResp {
-    pub signed_pubkey: G1Projective,
-}
 
 pub async fn init_opener(id: OpenerId, rng: &mut impl Rng) -> Opener {
     match env::var("AIAS_OPENER_SECRET_KEY") {
@@ -44,34 +37,31 @@ pub async fn init_opener(id: OpenerId, rng: &mut impl Rng) -> Opener {
 
 pub async fn gen_pubkey(openers: &Vec<String>, rb: &Rbatis) -> String {
     let domain = env::var("AIAS_OPENER_DOMAIN").expect("not set AIAS_OPENER_DOMAIN");
-    let index = openers
+    let self_index = openers
         .iter()
         .position(|d| d == &domain)
         .expect("domain is invalid");
 
-    let index = index + 1;
+    let self_index = self_index + 1;
 
     let joined_openers = joined_openers(&openers);
 
     let mut rng = thread_rng();
-    let opener_id = opener_id((index as u8) + 1).unwrap();
-
+    let opener_id = opener_id(self_index as u8).unwrap();
     let opener = init_opener(opener_id, &mut rng).await;
 
     let mut unsigned_pubkey = opener.opk.pubkey;
 
-    println!("tests: {:?}", openers);
-
     for (index, opener_domain) in openers.iter().enumerate() {
         if opener.id as usize == index {
-            println!("tests: 1");
-
             continue;
         }
 
-        let req = GenPubkeyReq {
+        let req = SignPubkeyReq {
             openers: openers.clone(),
-            unsigned_pubkey,
+            unsigned_pubkey: OPK {
+                pubkey: unsigned_pubkey,
+            },
         };
 
         let url = format!("http://{}/req_sign", opener_domain);
@@ -84,11 +74,11 @@ pub async fn gen_pubkey(openers: &Vec<String>, rb: &Rbatis) -> String {
             .send_json(&req)
             .await
             .expect("request error")
-            .json::<GenPubkeyResp>()
+            .json::<SignPubkeyResp>()
             .await
             .expect("parse error");
 
-        unsigned_pubkey = resp.signed_pubkey;
+        unsigned_pubkey = resp.signed_pubkey.pubkey;
     }
 
     let pubkey = g1_to_str(&unsigned_pubkey);
@@ -99,7 +89,7 @@ pub async fn gen_pubkey(openers: &Vec<String>, rb: &Rbatis) -> String {
             id: None,
             openers: Some(joined_openers),
             pubkey: Some(pubkey.clone()),
-            opener_id: Some(index as u8),
+            opener_id: Some(self_index as u8),
         },
     )
     .await;

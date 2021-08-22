@@ -1,6 +1,5 @@
 use crate::handler::GetPubkeyReq;
 use crate::handler::GetPubkeyResp;
-use crate::open::str_to_g1;
 use actix_session::CookieSession;
 use actix_web::client::Client;
 use actix_web::HttpServer;
@@ -44,7 +43,7 @@ async fn test_app() {
         .unwrap();
 
     let pubkey = resp.pubkey;
-    let pubkey = str_to_g1(&pubkey);
+    let pubkey = open::str_to_g1(&pubkey);
 
     let mut rng = thread_rng();
     let opener = open::init_opener(OpenerId::One, &mut rng).await;
