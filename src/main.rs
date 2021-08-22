@@ -11,6 +11,7 @@ use rand::Rng;
 
 mod db;
 mod handler;
+mod open;
 mod tests;
 
 use std::io;
