@@ -1,17 +1,10 @@
 use crate::db::Credential;
-use crate::rbatis::executor::Executor;
-use actix_session::Session;
-use actix_web::Error as WebError;
-use actix_web::{web, HttpResponse, Responder};
-use distributed_bss::opener::{Opener, OpenerId};
+use crate::init_opener;
+use actix_web::{web, HttpResponse};
+use distributed_bss::opener::OpenerId;
 use rand::thread_rng;
 
-use std::env;
-
-use crate::open::g1_to_str;
-
 use crate::open;
-use bls12_381::G1Projective;
 
 use crate::rbatis::crud::CRUD;
 use serde::{Deserialize, Serialize};
@@ -35,9 +28,7 @@ pub struct GetSignedKeyReq {
 use crate::db;
 
 pub async fn pubkey(openers: web::Json<GetPubkeyReq>) -> Result<HttpResponse, actix_web::Error> {
-    println!("hello");
-
-    let mut joined_openers = String::new();
+    let joined_openers = String::new();
     if openers.openers.len() > 3 {
         return HttpResponse::BadRequest().await;
     }
@@ -57,6 +48,20 @@ pub async fn pubkey(openers: web::Json<GetPubkeyReq>) -> Result<HttpResponse, ac
         .await
 }
 
-// pub async fn generate_signed_pubkey(openers: web::Json<GetPubkeyReq>) -> impl Responder {
-//     // let pubkey =
-// }
+pub async fn generate_signed_pubkey(
+    req: web::Json<open::GenPubkeyReq>,
+) -> Result<HttpResponse, actix_web::Error> {
+    let unsigned_pubkey = req.unsigned_pubkey;
+    let mut rng = thread_rng();
+
+    let opener = init_opener(OpenerId::One, &mut rng).await;
+    let unsigned_pubkey = distributed_bss::OPK {
+        pubkey: unsigned_pubkey,
+    };
+
+    let signed_pubkey = opener.gen_pubkey(&unsigned_pubkey);
+
+    HttpResponse::Ok()
+        .json(open::GenPubkeyResp { signed_pubkey })
+        .await
+}

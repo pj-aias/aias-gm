@@ -6,10 +6,10 @@ use std::env;
 #[crud_table(table_name:"credentials")]
 #[derive(Clone, Debug)]
 pub struct Credential {
-    pub id: Option<u32>,
+    pub id: Option<u8>,
     pub openers: Option<String>,
     pub pubkey: Option<String>,
-    pub opener_id: Option<u32>,
+    pub opener_id: Option<u8>,
 }
 
 pub async fn init_db() -> Rbatis {
@@ -25,7 +25,7 @@ pub async fn init_db() -> Rbatis {
             credentials(
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 openers TEXT,
-                pubkey TEXT
+                pubkey TEXT,
                 opener_id INTEGER
             )",
         &vec![],
