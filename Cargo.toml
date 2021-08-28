@@ -1,5 +1,5 @@
 [package]
-name = "aias-opener"
+name = "aias-gm"
 version = "0.1.0"
 authors = ["akakou <akakou571@gmail.com>"]
 edition = "2018"
