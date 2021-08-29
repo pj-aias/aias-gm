@@ -58,12 +58,15 @@ pub fn get_gm_index_from_domains(gms: &[String]) -> usize {
     return index + 1;
 }
 
-pub fn verify(signature: &String, _msg: &String, pubkey: &String) -> bool {
+pub fn verify(signature: &String, msg: &String, pubkey: &String) -> bool {
+    let bin_signature = base64::decode(signature).expect("base64 decode error");
     let bin_pubkey = base64::decode(pubkey).expect("pem decode error");
     let keypair = PKey::public_key_from_pem(&bin_pubkey).expect("pem decode error");
+
     let mut verifier = Verifier::new(MessageDigest::sha256(), &keypair).unwrap();
-    verifier.update(pubkey.as_bytes()).unwrap();
-    verifier.verify(signature.as_bytes()).unwrap()
+    verifier.update(msg.as_bytes()).unwrap();
+
+    verifier.verify(&bin_signature).unwrap()
 }
 
 pub fn verify_issuer_cert(cert: &String, user_pubkey: &String) -> bool {

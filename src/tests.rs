@@ -3,6 +3,8 @@ use crate::combine::generate_combined_pubkey;
 use crate::generate_challenge;
 use crate::issue::IssueMemberReq;
 use crate::issue_member;
+use crate::utils::verify;
+use crate::utils::verify_issuer_cert;
 
 use crate::gm;
 use crate::pubkey::pubkey;
@@ -73,9 +75,9 @@ async fn test_generate_usk() {
     Command::new("touch").args(&["aias.db"]).output().unwrap();
 
     let domains = [
-        "localhost:8081".to_string(),
-        "localhost:8081".to_string(),
-        "localhost:8081".to_string(),
+        "localhost:8080".to_string(),
+        "localhost:8080".to_string(),
+        "localhost:8080".to_string(),
     ]
     .to_vec();
 
@@ -119,8 +121,22 @@ async fn test_generate_usk() {
     let body = test::read_body(resp).await;
     let body = String::from_utf8(body.to_vec()).unwrap();
 
-    println!("{:}", body);
+    println!("result : {:}", body);
 }
+
+// #[test]
+// fn test_generate_test_issuer_req() {
+//     let nonce = "hogehoge".to_string();
+
+//     let domains = [
+//         "localhost:8081".to_string(),
+//         "localhost:8081".to_string(),
+//         "localhost:8081".to_string(),
+//     ]
+//     .to_vec();
+
+//     generate_test_issuer_req(&nonce, &domains);
+// }
 
 fn generate_test_issuer_req(nonce: &String, domains: &[String]) -> IssueMemberReq {
     // set up issuer
@@ -137,6 +153,15 @@ fn generate_test_issuer_req(nonce: &String, domains: &[String]) -> IssueMemberRe
     let user_pubkey_pem = user_pubkey.public_key_to_pem().unwrap();
     let user_pubkey_pem = base64::encode(&user_pubkey_pem);
 
+    // set up signature
+    let mut signer = Signer::new(MessageDigest::sha256(), &user_pubkey).expect("sign error");
+    signer.update(nonce.as_bytes()).expect("sign error");
+
+    let signature = signer.sign_to_vec().expect("sign error");
+    let signature = base64::encode(signature);
+
+    assert!(verify(&signature, &nonce, &user_pubkey_pem));
+
     // set up cert
     let mut signer = Signer::new(MessageDigest::sha256(), &issuer_pubkey).expect("sign error");
     signer
@@ -146,12 +171,7 @@ fn generate_test_issuer_req(nonce: &String, domains: &[String]) -> IssueMemberRe
     let cert = signer.sign_to_vec().expect("sign error");
     let cert = base64::encode(cert);
 
-    // set up signature
-    let mut signer = Signer::new(MessageDigest::sha256(), &user_pubkey).expect("sign error");
-    signer.update(nonce.as_bytes()).expect("sign error");
-
-    let signature = signer.sign_to_vec().expect("sign error");
-    let signature = base64::encode(signature);
+    assert!(verify_issuer_cert(&cert, &user_pubkey_pem));
 
     return IssueMemberReq {
         cert,

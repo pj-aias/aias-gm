@@ -35,9 +35,14 @@ pub async fn issue_member(
     session: Session,
 ) -> Result<HttpResponse, WebError> {
     let nonce = session.get::<String>("nonce")?.expect("nonce is not found");
+    println!("nonce2: {}", nonce);
 
-    if !verify_issuer_cert(&req.cert, &req.pubkey) || !verify(&req.signature, &nonce, &req.pubkey) {
-        return HttpResponse::Forbidden().json({}).await;
+    if !verify(&req.signature, &nonce, &req.pubkey) {
+        return HttpResponse::Unauthorized().json({}).await;
+    }
+
+    if !verify_issuer_cert(&req.cert, &req.pubkey) {
+        return HttpResponse::Unauthorized().json({}).await;
     }
 
     let rb = db::init_db().await;
