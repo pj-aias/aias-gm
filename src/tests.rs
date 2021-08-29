@@ -1,6 +1,5 @@
 use crate::handler::GetPubkeyReq;
 use crate::handler::GetPubkeyResp;
-use crate::utils::str_to_g1;
 use actix_session::CookieSession;
 use actix_web::client::Client;
 use actix_web::HttpServer;
@@ -50,12 +49,11 @@ async fn test_app() {
         .await
         .unwrap();
 
-    let pubkey = resp.pubkey;
-    let pubkey = str_to_g1(&pubkey);
+    let h = resp.combined.h;
 
     let mut rng = thread_rng();
     let gm = gm::init_gm(GMId::One, &mut rng).await;
     let expect = gm.gpk.h * gm.gsk.xi * gm.gsk.xi;
 
-    assert_eq!(pubkey, expect);
+    assert_eq!(h, expect);
 }

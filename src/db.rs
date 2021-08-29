@@ -7,7 +7,7 @@ use std::env;
 #[derive(Clone, Debug)]
 pub struct Credential {
     pub id: Option<u8>,
-    pub gms: Option<String>,
+    pub domains: Option<String>,
     pub pubkey: Option<String>,
     pub gm_id: Option<u8>,
 }
@@ -24,7 +24,7 @@ pub async fn init_db() -> Rbatis {
         "CREATE TABLE IF NOT EXISTS 
             credentials(
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                gms TEXT,
+                domains TEXT,
                 pubkey TEXT,
                 gm_id INTEGER
             )",

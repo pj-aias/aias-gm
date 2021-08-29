@@ -1,8 +1,11 @@
 use crate::db::Credential;
 use crate::gm::init_gm_from_domains;
+use crate::gm::CombinedGPKWithoutPartials;
 use crate::init_gm;
+use crate::utils::decode_to_combined;
 use crate::utils::joined_gms;
 use actix_web::{web, HttpResponse};
+use bls12_381::G2Projective;
 use distributed_bss::gm::GMId;
 use rand::thread_rng;
 
@@ -20,7 +23,8 @@ pub struct GetPubkeyReq {
 
 #[derive(Deserialize, Serialize)]
 pub struct GetPubkeyResp {
-    pub pubkey: String,
+    pub combined: CombinedGPKWithoutPartials,
+    pub partial: G2Projective,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -53,18 +57,18 @@ pub async fn pubkey(domains: web::Json<GetPubkeyReq>) -> Result<HttpResponse, ac
     let gm = init_gm_from_domains(&domains.domains, &mut rng).await;
     let joined_domains = joined_gms(&domains.domains);
 
-    let pubkey: String = match rb
-        .fetch_by_column::<Credential, String>("gms", &joined_domains)
+    let combined: CombinedGPKWithoutPartials = match rb
+        .fetch_by_column::<Credential, String>("domains", &joined_domains)
         .await
     {
-        Ok(cred) => cred.pubkey.unwrap(),
-        Err(_) => gm::gen_pubkey(&gm, &domains.domains, &rb).await,
+        Ok(cred) => decode_to_combined(&cred.pubkey.expect("can't load combined gpk")).clone(),
+        Err(_) => gm::gen_pubkey(&gm, &domains.domains, &rb).await.unwrap(),
     };
 
-    let usk = gm.issue_member(&mut rng);
+    let partial = gm.gpk.omega;
 
     HttpResponse::Ok()
-        .json(GetPubkeyResp { pubkey: pubkey })
+        .json(GetPubkeyResp { combined, partial })
         .await
 }
 

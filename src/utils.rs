@@ -1,17 +1,21 @@
-use bls12_381::G1Projective;
+use crate::gm::CombinedGPKWithoutPartials;
 use distributed_bss::gm::GMId;
+use serde::Serialize;
 
 use std::env;
 
-pub fn g1_to_str(point: &G1Projective) -> String {
+pub fn encode<T>(point: &T) -> String
+where
+    T: Serialize,
+{
     let point = rmp_serde::to_vec(&point).expect("rmp encode error");
     let point = base64::encode(&point);
 
     return point;
 }
 
-pub fn str_to_g1(point: &String) -> G1Projective {
-    let point = base64::decode(&point).expect("base64 decode error");
+pub fn decode_to_combined(point: &String) -> CombinedGPKWithoutPartials {
+    let point = base64::decode(point).expect("base64 decode error");
     let point = rmp_serde::from_slice(&point).expect("rmp decode error");
 
     return point;

@@ -1,11 +1,12 @@
-use crate::utils::g1_to_str;
+use crate::utils::encode;
 use crate::utils::get_gm_index_from_domains;
 use crate::utils::gm_id;
 use crate::utils::joined_gms;
 use actix_web::client::Client;
+use bls12_381::G1Projective;
 use bls12_381::Scalar;
+use distributed_bss::gm::CombinedPubkey;
 use distributed_bss::gm::{GMId, GM};
-use rand::thread_rng;
 use rand::Rng;
 use rbatis::rbatis::Rbatis;
 use std::env;
@@ -14,6 +15,15 @@ use crate::handler::SignPubkeyReq;
 use crate::handler::SignPubkeyResp;
 
 use crate::db;
+
+use serde::{Deserialize, Serialize};
+
+#[derive(Serialize, Deserialize, Clone)]
+pub struct CombinedGPKWithoutPartials {
+    pub h: G1Projective,
+    pub u: G1Projective,
+    pub v: G1Projective,
+}
 
 /// init GM
 pub async fn init_gm(id: GMId, rng: &mut impl Rng) -> GM {
@@ -48,15 +58,59 @@ pub async fn init_gm(id: GMId, rng: &mut impl Rng) -> GM {
 pub async fn init_gm_from_domains(domains: &Vec<String>, rng: &mut impl Rng) -> GM {
     let self_index = get_gm_index_from_domains(domains) as u8;
 
-    let mut rng = thread_rng();
     let gm_id = gm_id(self_index).unwrap();
-    init_gm(gm_id, &mut rng).await
+    init_gm(gm_id, rng).await
 }
 
-pub async fn gen_pubkey(gm: &GM, domains: &Vec<String>, rb: &Rbatis) -> String {
-    let mut unsigned_pubkey = gm.gpk.h;
-    let joined_domains = joined_gms(domains);
+pub async fn gen_pubkey(
+    gm: &GM,
+    domains: &Vec<String>,
+    rb: &Rbatis,
+) -> Result<CombinedGPKWithoutPartials, String> {
+    let mut domains = domains.clone();
 
+    let unsigned_pubkey = gm.gpk.h;
+    let joined_domains = joined_gms(&domains);
+
+    let pubkeys1 = communicate_to_gen_pubkey(gm, &domains, &unsigned_pubkey).await;
+
+    domains.reverse();
+    let pubkeys2 = communicate_to_gen_pubkey(gm, &domains, &unsigned_pubkey).await;
+
+    if pubkeys1[1] != pubkeys2[1] {
+        return Err("wrong combined pubkey generated".to_string());
+    }
+
+    let pubkey = CombinedGPKWithoutPartials {
+        h: pubkeys1[1],
+        u: pubkeys1[0],
+        v: pubkeys2[0],
+    };
+
+    let encoded = encode(&pubkey);
+
+    db::save(
+        &rb,
+        &db::Credential {
+            id: None,
+            domains: Some(joined_domains),
+            pubkey: Some(encoded),
+            gm_id: Some(gm.id as u8),
+        },
+    )
+    .await;
+
+    Ok(pubkey)
+}
+
+pub async fn communicate_to_gen_pubkey(
+    gm: &GM,
+    domains: &Vec<String>,
+    unsigned_pubkey: &CombinedPubkey,
+) -> Vec<CombinedPubkey> {
+    let mut pubkeys = vec![];
+
+    let mut unsigned_pubkey = *unsigned_pubkey;
     for (index, gm_domain) in domains.iter().enumerate() {
         if gm.id as usize == index {
             continue;
@@ -81,20 +135,8 @@ pub async fn gen_pubkey(gm: &GM, domains: &Vec<String>, rb: &Rbatis) -> String {
             .expect("parse error");
 
         unsigned_pubkey = resp.signed_pubkey;
+        pubkeys.push(unsigned_pubkey);
     }
 
-    let pubkey = g1_to_str(&unsigned_pubkey);
-
-    db::save(
-        &rb,
-        &db::Credential {
-            id: None,
-            gms: Some(joined_domains),
-            pubkey: Some(pubkey.clone()),
-            gm_id: Some(gm.id as u8),
-        },
-    )
-    .await;
-
-    pubkey
+    pubkeys
 }
