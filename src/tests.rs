@@ -1,5 +1,8 @@
-use crate::handler::GetPubkeyReq;
-use crate::handler::GetPubkeyResp;
+use crate::combine::generate_combined_pubkey;
+use crate::handlers::*;
+use crate::pubkey::pubkey;
+use crate::pubkey::GetPubkeyReq;
+use crate::pubkey::GetPubkeyResp;
 use actix_session::CookieSession;
 use actix_web::client::Client;
 use actix_web::HttpServer;
@@ -8,8 +11,9 @@ use distributed_bss::gm::GMId;
 use rand::thread_rng;
 
 use crate::gm;
-use crate::handler;
+use crate::handlers;
 
+use crate::handlers::*;
 use std::process::Command;
 
 #[actix_rt::test]
@@ -28,11 +32,8 @@ async fn test_app() {
     HttpServer::new(move || {
         App::new()
             .wrap(CookieSession::private(&[0; 32]).secure(true))
-            .route("/pubkey", web::post().to(handler::pubkey))
-            .route(
-                "/req_sign",
-                web::post().to(handler::generate_combined_pubkey),
-            )
+            .route("/pubkey", web::post().to(pubkey))
+            .route("/req_sign", web::post().to(generate_combined_pubkey))
     })
     .bind("0.0.0.0:8080")
     .expect("run server error")
