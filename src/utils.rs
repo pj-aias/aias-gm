@@ -1,4 +1,4 @@
-use crate::gm::CombinedGPKWithoutPartials;
+// use crate::gm::CombinedGPKWithoutPartials;
 use distributed_bss::gm::GMId;
 use serde::Serialize;
 
@@ -14,12 +14,12 @@ where
     return point;
 }
 
-pub fn decode_to_combined(point: &String) -> CombinedGPKWithoutPartials {
-    let point = base64::decode(point).expect("base64 decode error");
-    let point = rmp_serde::from_slice(&point).expect("rmp decode error");
+// pub fn decode_to_combined(point: &String) -> CombinedGPKWithoutPartials {
+//     let point = base64::decode(point).expect("base64 decode error");
+//     let point = rmp_serde::from_slice(&point).expect("rmp decode error");
 
-    return point;
-}
+//     return point;
+// }
 
 pub fn joined_gms(gms: &Vec<String>) -> String {
     let mut joined_gms = String::new();
