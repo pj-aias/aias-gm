@@ -1,5 +1,5 @@
 use crate::combine::generate_combined_pubkey;
-use crate::handlers::*;
+
 use crate::pubkey::pubkey;
 use crate::pubkey::GetPubkeyReq;
 use crate::pubkey::GetPubkeyResp;
@@ -11,9 +11,7 @@ use distributed_bss::gm::GMId;
 use rand::thread_rng;
 
 use crate::gm;
-use crate::handlers;
 
-use crate::handlers::*;
 use std::process::Command;
 
 #[actix_rt::test]

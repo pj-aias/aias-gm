@@ -4,7 +4,7 @@ use serde::Serialize;
 
 use openssl::hash::MessageDigest;
 use openssl::pkey::PKey;
-use openssl::rsa::Rsa;
+
 use openssl::sign::Verifier;
 
 use std::env;
@@ -58,7 +58,7 @@ pub fn get_gm_index_from_domains(gms: &[String]) -> usize {
     return index + 1;
 }
 
-pub fn verify(signature: &String, msg: &String, pubkey: &String) -> bool {
+pub fn verify(signature: &String, _msg: &String, pubkey: &String) -> bool {
     let keypair = PKey::public_key_from_pem(&pubkey.as_bytes()).expect("pem decode error");
     let mut verifier = Verifier::new(MessageDigest::sha256(), &keypair).unwrap();
     verifier.update(pubkey.as_bytes()).unwrap();
@@ -67,7 +67,7 @@ pub fn verify(signature: &String, msg: &String, pubkey: &String) -> bool {
 
 pub fn verify_issuer_cert(cert: &String, user_pubkey: &String) -> bool {
     let issuer_pubkey = env::var("AIAS_ISSUER_PUBKEY").expect("pem is not found");
-    let keypair = PKey::public_key_from_pem(&issuer_pubkey.as_bytes()).expect("pem decode error");
+    let _keypair = PKey::public_key_from_pem(&issuer_pubkey.as_bytes()).expect("pem decode error");
 
     verify(cert, user_pubkey, &issuer_pubkey)
 }

@@ -1,5 +1,5 @@
 use crate::rbatis::executor::Executor;
-use rbatis::crud::CRUD;
+
 use rbatis::rbatis::Rbatis;
 use std::env;
 

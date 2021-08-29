@@ -1,19 +1,19 @@
 use crate::gm::init_gm_from_domains;
-use crate::gm::CombinedGPKWithoutPartials;
-use crate::init_gm;
+
+
 use crate::utils::encode;
 use crate::utils::joined_domains;
 use crate::utils::verify;
 use crate::utils::verify_issuer_cert;
 use actix_session::Session;
 use actix_web::{web, HttpResponse};
-use bls12_381::G2Projective;
-use distributed_bss::gm::CombinedPubkey;
-use distributed_bss::gm::GMId;
+
+
+
 use distributed_bss::PartialUSK;
-use rand::distributions::Alphanumeric;
+
 use rand::thread_rng;
-use rand::Rng;
+
 use rbatis::crud::CRUD;
 
 use crate::db;
@@ -49,11 +49,11 @@ pub async fn issue_member(
 
     let gm = init_gm_from_domains(&req.domains, &mut rng).await;
 
-    let combined = gm::gen_pubkey(&gm, &req.domains, &rb)
+    let _combined = gm::gen_pubkey(&gm, &req.domains, &rb)
         .await
         .expect("errro generate pubkey");
 
-    let partial = gm.gpk.omega;
+    let _partial = gm.gpk.omega;
 
     let partical_usk = gm.issue_member(&mut rng);
     let encode_usk = encode(&partical_usk);
