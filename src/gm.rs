@@ -5,7 +5,6 @@ use crate::utils::joined_gms;
 use actix_web::client::Client;
 use bls12_381::Scalar;
 use distributed_bss::gm::{GMId, GM};
-use distributed_bss::CombinedGPK;
 use rand::thread_rng;
 use rand::Rng;
 use rbatis::rbatis::Rbatis;
@@ -13,8 +12,6 @@ use std::env;
 
 use crate::handler::SignPubkeyReq;
 use crate::handler::SignPubkeyResp;
-
-use bls12_381::G1Projective;
 
 use crate::db;
 
