@@ -1,3 +1,5 @@
+use crate::issue_member;
+use crate::generate_challenge;
 use crate::combine::generate_combined_pubkey;
 
 use crate::pubkey::pubkey;
@@ -31,7 +33,9 @@ async fn test_app() {
         App::new()
             .wrap(CookieSession::private(&[0; 32]).secure(true))
             .route("/pubkey", web::post().to(pubkey))
-            .route("/req_sign", web::post().to(generate_combined_pubkey))
+            .route("/combine", web::post().to(generate_combined_pubkey))
+            .route("/challenge", web::get().to(generate_challenge))
+            .route("/issue", web::post().to(issue_member))
     })
     .bind("0.0.0.0:8080")
     .expect("run server error")

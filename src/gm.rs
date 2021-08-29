@@ -1,5 +1,5 @@
-use crate::combine::SignPubkeyResp;
 use crate::combine::SignPubkeyReq;
+use crate::combine::SignPubkeyResp;
 use crate::rbatis::crud::CRUD;
 use crate::utils::encode;
 use crate::utils::get_gm_index_from_domains;
@@ -13,10 +13,6 @@ use distributed_bss::gm::{GMId, GM};
 use rand::Rng;
 use rbatis::rbatis::Rbatis;
 use std::env;
-
-// use crate::handlers::*;
-
-// SignPubkeyReq;
 
 use crate::db;
 
@@ -126,7 +122,7 @@ pub async fn communicate_to_gen_pubkey(
             unsigned_pubkey: unsigned_pubkey,
         };
 
-        let url = format!("http://{}/req_sign", gm_domain);
+        let url = format!("http://{}/combine", gm_domain);
 
         let client = Client::new();
 
