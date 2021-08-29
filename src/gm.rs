@@ -45,23 +45,25 @@ pub async fn init_gm(id: GMId, rng: &mut impl Rng) -> GM {
     }
 }
 
-pub async fn gen_pubkey(gms: &Vec<String>, rb: &Rbatis) -> String {
-    let joined_gms = joined_gms(&gms);
-    let self_index = get_gm_index_from_domains(gms) as u8;
+pub async fn init_gm_from_domains(domains: &Vec<String>, rng: &mut impl Rng) -> GM {
+    let self_index = get_gm_index_from_domains(domains) as u8;
 
     let mut rng = thread_rng();
     let gm_id = gm_id(self_index).unwrap();
-    let gm = init_gm(gm_id, &mut rng).await;
+    init_gm(gm_id, &mut rng).await
+}
 
+pub async fn gen_pubkey(gm: &GM, domains: &Vec<String>, rb: &Rbatis) -> String {
     let mut unsigned_pubkey = gm.gpk.h;
+    let joined_domains = joined_gms(domains);
 
-    for (index, gm_domain) in gms.iter().enumerate() {
+    for (index, gm_domain) in domains.iter().enumerate() {
         if gm.id as usize == index {
             continue;
         }
 
         let req = SignPubkeyReq {
-            gms: gms.clone(),
+            domains: domains.clone(),
             unsigned_pubkey: unsigned_pubkey,
         };
 
@@ -87,9 +89,9 @@ pub async fn gen_pubkey(gms: &Vec<String>, rb: &Rbatis) -> String {
         &rb,
         &db::Credential {
             id: None,
-            gms: Some(joined_gms),
+            gms: Some(joined_domains),
             pubkey: Some(pubkey.clone()),
-            gm_id: Some(self_index as u8),
+            gm_id: Some(gm.id as u8),
         },
     )
     .await;

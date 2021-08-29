@@ -1,5 +1,7 @@
 use crate::db::Credential;
+use crate::gm::init_gm_from_domains;
 use crate::init_gm;
+use crate::utils::joined_gms;
 use actix_web::{web, HttpResponse};
 use distributed_bss::gm::GMId;
 use rand::thread_rng;
@@ -13,7 +15,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize)]
 pub struct GetPubkeyReq {
-    pub gms: Vec<String>,
+    pub domains: Vec<String>,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -24,12 +26,12 @@ pub struct GetPubkeyResp {
 #[derive(Deserialize, Serialize)]
 pub struct GetSignedKeyReq {
     pub pubkey: String,
-    pub gms: Vec<String>,
+    pub domains: Vec<String>,
 }
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct SignPubkeyReq {
-    pub gms: Vec<String>,
+    pub domains: Vec<String>,
     pub unsigned_pubkey: CombinedPubkey,
 }
 
@@ -40,21 +42,26 @@ pub struct SignPubkeyResp {
 
 use crate::db;
 
-pub async fn pubkey(gms: web::Json<GetPubkeyReq>) -> Result<HttpResponse, actix_web::Error> {
-    let joined_gms = String::new();
-    if gms.gms.len() > 3 {
+pub async fn pubkey(domains: web::Json<GetPubkeyReq>) -> Result<HttpResponse, actix_web::Error> {
+    if domains.domains.len() != 3 {
         return HttpResponse::BadRequest().await;
     }
 
     let rb = db::init_db().await;
+    let mut rng = thread_rng();
+
+    let gm = init_gm_from_domains(&domains.domains, &mut rng).await;
+    let joined_domains = joined_gms(&domains.domains);
 
     let pubkey: String = match rb
-        .fetch_by_column::<Credential, String>("gms", &joined_gms)
+        .fetch_by_column::<Credential, String>("gms", &joined_domains)
         .await
     {
         Ok(cred) => cred.pubkey.unwrap(),
-        Err(_) => gm::gen_pubkey(&gms.gms, &rb).await,
+        Err(_) => gm::gen_pubkey(&gm, &domains.domains, &rb).await,
     };
+
+    let usk = gm.issue_member(&mut rng);
 
     HttpResponse::Ok()
         .json(GetPubkeyResp { pubkey: pubkey })
@@ -70,7 +77,6 @@ pub async fn generate_combined_pubkey(
     let gm = init_gm(GMId::One, &mut rng).await;
 
     let signed_pubkey = gm.gen_combined_pubkey(&unsigned_pubkey);
-    let signed_pubkey = signed_pubkey;
 
     HttpResponse::Ok()
         .json(SignPubkeyResp { signed_pubkey })

@@ -18,7 +18,7 @@ async fn test_app() {
     Command::new("touch").args(&["aias.db"]).output().unwrap();
 
     let gms = GetPubkeyReq {
-        gms: [
+        domains: [
             "localhost:8080".to_string(),
             "localhost:8080".to_string(),
             "localhost:8080".to_string(),
