@@ -21,14 +21,14 @@ where
 //     return point;
 // }
 
-pub fn joined_gms(gms: &Vec<String>) -> String {
-    let mut joined_gms = String::new();
+pub fn joined_domains(gms: &Vec<String>) -> String {
+    let mut joined_domains = String::new();
 
     for gm in gms {
-        joined_gms += &(gm.to_owned() + ",");
+        joined_domains += &(gm.to_owned() + ",");
     }
 
-    return joined_gms;
+    return joined_domains;
 }
 
 pub fn gm_id(num: u8) -> Option<GMId> {

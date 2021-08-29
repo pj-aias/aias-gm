@@ -1,7 +1,8 @@
+use crate::rbatis::crud::CRUD;
 use crate::utils::encode;
 use crate::utils::get_gm_index_from_domains;
 use crate::utils::gm_id;
-use crate::utils::joined_gms;
+use crate::utils::joined_domains;
 use actix_web::client::Client;
 use bls12_381::G1Projective;
 use bls12_381::Scalar;
@@ -70,7 +71,7 @@ pub async fn gen_pubkey(
     let mut domains = domains.clone();
 
     let unsigned_pubkey = gm.gpk.h;
-    let joined_domains = joined_gms(&domains);
+    let joined_domains = joined_domains(&domains);
 
     let pubkeys1 = communicate_to_gen_pubkey(gm, &domains, &unsigned_pubkey).await;
 
@@ -89,16 +90,17 @@ pub async fn gen_pubkey(
 
     let encoded = encode(&pubkey);
 
-    db::save(
-        &rb,
-        &db::Credential {
+    rb.save(
+        &db::PublicKey {
             id: None,
             domains: Some(joined_domains),
             pubkey: Some(encoded),
             gm_id: Some(gm.id as u8),
         },
+        &[],
     )
-    .await;
+    .await
+    .expect("Error DB");
 
     Ok(pubkey)
 }

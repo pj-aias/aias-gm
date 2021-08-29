@@ -3,13 +3,22 @@ use rbatis::crud::CRUD;
 use rbatis::rbatis::Rbatis;
 use std::env;
 
-#[crud_table(table_name:"credentials")]
+#[crud_table(table_name:"publickeys")]
 #[derive(Clone, Debug)]
-pub struct Credential {
+pub struct PublicKey {
     pub id: Option<u8>,
     pub domains: Option<String>,
     pub pubkey: Option<String>,
     pub gm_id: Option<u8>,
+}
+
+#[crud_table(table_name:"members")]
+#[derive(Clone, Debug)]
+pub struct Member {
+    pub id: Option<u8>,
+    pub cert: Option<String>,
+    pub domains: Option<String>,
+    pub usk: Option<String>,
 }
 
 pub async fn init_db() -> Rbatis {
@@ -22,7 +31,7 @@ pub async fn init_db() -> Rbatis {
 
     rb.exec(
         "CREATE TABLE IF NOT EXISTS 
-            credentials(
+            publickeys(
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 domains TEXT,
                 pubkey TEXT,
@@ -31,11 +40,20 @@ pub async fn init_db() -> Rbatis {
         &vec![],
     )
     .await
+    .expect("Error creating table");
+
+    rb.exec(
+        "CREATE TABLE IF NOT EXISTS 
+            members(
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                domains TEXT,
+                cert TEXT,
+                usk TEXT
+            )",
+        &vec![],
+    )
+    .await
     .expect("Error creating");
 
     rb
-}
-
-pub async fn save(rb: &Rbatis, credential: &Credential) {
-    rb.save(credential, &[]).await.expect("Error DB");
 }

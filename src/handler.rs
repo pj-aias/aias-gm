@@ -1,12 +1,16 @@
 use crate::gm::init_gm_from_domains;
 use crate::gm::CombinedGPKWithoutPartials;
 use crate::init_gm;
+use crate::utils::encode;
+use crate::utils::joined_domains;
 use actix_web::{web, HttpResponse};
 use bls12_381::G2Projective;
 use distributed_bss::gm::GMId;
 use rand::thread_rng;
+use rbatis::crud::CRUD;
 
 use distributed_bss::gm::CombinedPubkey;
+use distributed_bss::PartialUSK;
 
 use crate::gm;
 
@@ -26,6 +30,17 @@ pub struct GetPubkeyResp {
 #[derive(Deserialize, Serialize)]
 pub struct GetSignedKeyReq {
     pub pubkey: String,
+    pub domains: Vec<String>,
+}
+
+#[derive(Deserialize, Serialize)]
+pub struct IssueMemberResp {
+    pub partical_usk: PartialUSK,
+}
+
+#[derive(Deserialize, Serialize)]
+pub struct IssueMemberReq {
+    pub cert: String,
     pub domains: Vec<String>,
 }
 
@@ -75,5 +90,41 @@ pub async fn generate_combined_pubkey(
 
     HttpResponse::Ok()
         .json(SignPubkeyResp { signed_pubkey })
+        .await
+}
+
+pub async fn issue_member(
+    req: web::Json<IssueMemberReq>,
+) -> Result<HttpResponse, actix_web::Error> {
+    let rb = db::init_db().await;
+    let mut rng = thread_rng();
+
+    let gm = init_gm_from_domains(&req.domains, &mut rng).await;
+
+    let combined = gm::gen_pubkey(&gm, &req.domains, &rb)
+        .await
+        .expect("errro generate pubkey");
+
+    let partial = gm.gpk.omega;
+
+    let usk = gm.issue_member(&mut rng);
+    let usk = encode(&usk);
+
+    let cert = encode(&req.cert.clone());
+
+    rb.save(
+        &db::Member {
+            id: None,
+            domains: Some(joined_domains(&req.domains)),
+            usk: Some(usk),
+            cert: Some(cert),
+        },
+        &[],
+    )
+    .await
+    .expect("Error DB");
+
+    HttpResponse::Ok()
+        .json(GetPubkeyResp { combined, partial })
         .await
 }
