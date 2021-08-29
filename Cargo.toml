@@ -22,6 +22,7 @@ log = "0.4"
 fast_log="1.3"
 
 rbatis = { version = "2" }
+openssl = { version = "0.10", features = ["vendored"] }
 
 [dependencies.distributed-bss]
 git="https://github.com/pj-aias/distributed-bbs"

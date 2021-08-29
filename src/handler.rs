@@ -3,6 +3,8 @@ use crate::gm::CombinedGPKWithoutPartials;
 use crate::init_gm;
 use crate::utils::encode;
 use crate::utils::joined_domains;
+use crate::utils::verify;
+use crate::utils::verify_issuer_cert;
 use actix_session::Session;
 use actix_web::{web, HttpResponse};
 use bls12_381::G2Projective;
@@ -43,6 +45,8 @@ pub struct IssueMemberResp {
 #[derive(Deserialize, Serialize)]
 pub struct IssueMemberReq {
     pub cert: String,
+    pub signature: String,
+    pub pubkey: String,
     pub domains: Vec<String>,
 }
 
@@ -121,7 +125,11 @@ pub async fn issue_member(
     req: web::Json<IssueMemberReq>,
     session: Session,
 ) -> Result<HttpResponse, actix_web::Error> {
-    let expect = session.get::<String>("nonce")?;
+    let nonce = session.get::<String>("nonce")?.expect("nonce is not found");
+
+    if !verify_issuer_cert(&req.cert, &req.pubkey) || !verify(&req.signature, &nonce, &req.pubkey) {
+        panic!();
+    }
 
     let rb = db::init_db().await;
     let mut rng = thread_rng();
