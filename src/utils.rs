@@ -59,7 +59,8 @@ pub fn get_gm_index_from_domains(gms: &[String]) -> usize {
 }
 
 pub fn verify(signature: &String, _msg: &String, pubkey: &String) -> bool {
-    let keypair = PKey::public_key_from_pem(&pubkey.as_bytes()).expect("pem decode error");
+    let bin_pubkey = base64::decode(pubkey).expect("pem decode error");
+    let keypair = PKey::public_key_from_pem(&bin_pubkey).expect("pem decode error");
     let mut verifier = Verifier::new(MessageDigest::sha256(), &keypair).unwrap();
     verifier.update(pubkey.as_bytes()).unwrap();
     verifier.verify(signature.as_bytes()).unwrap()
@@ -67,7 +68,5 @@ pub fn verify(signature: &String, _msg: &String, pubkey: &String) -> bool {
 
 pub fn verify_issuer_cert(cert: &String, user_pubkey: &String) -> bool {
     let issuer_pubkey = env::var("AIAS_ISSUER_PUBKEY").expect("pem is not found");
-    let _keypair = PKey::public_key_from_pem(&issuer_pubkey.as_bytes()).expect("pem decode error");
-
     verify(cert, user_pubkey, &issuer_pubkey)
 }
