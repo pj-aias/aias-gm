@@ -1,0 +1,43 @@
+services:
+    app1:
+        image: rust:latest
+        command: cargo run
+        working_dir: /app
+        volumes:
+            - ./:/app
+            - .~/.cargo:/home/aias/.cargo
+        ports: 
+            - 8081:8080
+        environment:
+            - USER=aias
+            - AIAS_OPENER_DB_PATH=sqlite://aias.db
+            - AIAS_OPENER_DOMAIN=app1:8081
+        tty: true
+    
+    # app2:
+    #     image: rust:latest
+    #     command: cargo run
+    #     working_dir: /app
+    #     volumes:
+    #         - ./:/app
+    #     ports: 
+    #         - 8082:8080
+    #     environment:
+    #         - USER=aias
+    #         - AIAS_OPENER_DB_PATH=sqlite://aias.db
+    #         - AIAS_OPENER_DOMAIN=app2:8082
+    #     tty: true
+
+    # app3:
+    #     image: rust:latest
+    #     command: cargo run
+    #     working_dir: /app
+    #     volumes:
+    #         - ./:/app
+    #     ports: 
+    #         - 8083:8080
+    #     environment:
+    #         - USER=aias
+    #         - AIAS_OPENER_DB_PATH=sqlite://aias.db
+    #         - AIAS_OPENER_DOMAIN=app3:8083
+    #     tty: true

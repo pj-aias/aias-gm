@@ -1,5 +1,5 @@
 [package]
-name = "aias-opener"
+name = "aias-gm"
 version = "0.1.0"
 authors = ["akakou <akakou571@gmail.com>"]
 edition = "2018"
@@ -22,6 +22,7 @@ log = "0.4"
 fast_log="1.3"
 
 rbatis = { version = "2" }
+openssl = { version = "0.10", features = ["vendored"] }
 
 [dependencies.distributed-bss]
 git="https://github.com/pj-aias/distributed-bbs"
