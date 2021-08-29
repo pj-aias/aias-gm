@@ -1,9 +1,10 @@
 use crate::db::Credential;
-use crate::init_opener;
+use crate::init_gm;
 use actix_web::{web, HttpResponse};
-use distributed_bss::opener::OpenerId;
-use distributed_bss::OPK;
+use distributed_bss::gm::GMId;
 use rand::thread_rng;
+
+use distributed_bss::gm::CombinedPubkey;
 
 use crate::open;
 
@@ -12,7 +13,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize)]
 pub struct GetPubkeyReq {
-    pub openers: Vec<String>,
+    pub gms: Vec<String>,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -23,36 +24,36 @@ pub struct GetPubkeyResp {
 #[derive(Deserialize, Serialize)]
 pub struct GetSignedKeyReq {
     pub pubkey: String,
-    pub openers: Vec<String>,
+    pub gms: Vec<String>,
 }
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct SignPubkeyReq {
-    pub openers: Vec<String>,
-    pub unsigned_pubkey: OPK,
+    pub gms: Vec<String>,
+    pub unsigned_pubkey: CombinedPubkey,
 }
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct SignPubkeyResp {
-    pub signed_pubkey: OPK,
+    pub signed_pubkey: CombinedPubkey,
 }
 
 use crate::db;
 
-pub async fn pubkey(openers: web::Json<GetPubkeyReq>) -> Result<HttpResponse, actix_web::Error> {
-    let joined_openers = String::new();
-    if openers.openers.len() > 3 {
+pub async fn pubkey(gms: web::Json<GetPubkeyReq>) -> Result<HttpResponse, actix_web::Error> {
+    let joined_gms = String::new();
+    if gms.gms.len() > 3 {
         return HttpResponse::BadRequest().await;
     }
 
     let rb = db::init_db().await;
 
     let pubkey: String = match rb
-        .fetch_by_column::<Credential, String>("openers", &joined_openers)
+        .fetch_by_column::<Credential, String>("gms", &joined_gms)
         .await
     {
         Ok(cred) => cred.pubkey.unwrap(),
-        Err(_) => open::gen_pubkey(&openers.openers, &rb).await,
+        Err(_) => open::gen_pubkey(&gms.gms, &rb).await,
     };
 
     HttpResponse::Ok()
@@ -60,18 +61,16 @@ pub async fn pubkey(openers: web::Json<GetPubkeyReq>) -> Result<HttpResponse, ac
         .await
 }
 
-pub async fn generate_signed_pubkey(
+pub async fn generate_combined_pubkey(
     req: web::Json<SignPubkeyReq>,
 ) -> Result<HttpResponse, actix_web::Error> {
     let unsigned_pubkey = req.unsigned_pubkey;
     let mut rng = thread_rng();
 
-    let opener = init_opener(OpenerId::One, &mut rng).await;
+    let gm = init_gm(GMId::One, &mut rng).await;
 
-    let signed_pubkey = opener.gen_pubkey(&unsigned_pubkey);
-    let signed_pubkey = OPK {
-        pubkey: signed_pubkey,
-    };
+    let signed_pubkey = gm.gen_combined_pubkey(&unsigned_pubkey);
+    let signed_pubkey = signed_pubkey;
 
     HttpResponse::Ok()
         .json(SignPubkeyResp { signed_pubkey })

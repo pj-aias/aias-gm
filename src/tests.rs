@@ -1,19 +1,24 @@
 use crate::handler::GetPubkeyReq;
 use crate::handler::GetPubkeyResp;
+use crate::utils::str_to_g1;
 use actix_session::CookieSession;
 use actix_web::client::Client;
 use actix_web::HttpServer;
 use actix_web::{web, App};
-use distributed_bss::opener::OpenerId;
+use distributed_bss::gm::GMId;
 use rand::thread_rng;
 
 use crate::handler;
 use crate::open;
 
+use std::process::Command;
+
 #[actix_rt::test]
 async fn test_app() {
-    let openers = GetPubkeyReq {
-        openers: [
+    Command::new("touch").args(&["aias.db"]).output().unwrap();
+
+    let gms = GetPubkeyReq {
+        gms: [
             "localhost:8080".to_string(),
             "localhost:8080".to_string(),
             "localhost:8080".to_string(),
@@ -25,7 +30,10 @@ async fn test_app() {
         App::new()
             .wrap(CookieSession::private(&[0; 32]).secure(true))
             .route("/pubkey", web::post().to(handler::pubkey))
-            .route("/req_sign", web::post().to(handler::generate_signed_pubkey))
+            .route(
+                "/req_sign",
+                web::post().to(handler::generate_combined_pubkey),
+            )
     })
     .bind("0.0.0.0:8080")
     .expect("run server error")
@@ -35,7 +43,7 @@ async fn test_app() {
 
     let resp = client
         .post("http://localhost:8080/pubkey")
-        .send_json(&openers)
+        .send_json(&gms)
         .await
         .expect("request error")
         .json::<GetPubkeyResp>()
@@ -43,11 +51,11 @@ async fn test_app() {
         .unwrap();
 
     let pubkey = resp.pubkey;
-    let pubkey = open::str_to_g1(&pubkey);
+    let pubkey = str_to_g1(&pubkey);
 
     let mut rng = thread_rng();
-    let opener = open::init_opener(OpenerId::One, &mut rng).await;
-    let expect = opener.opk.pubkey * opener.osk.xi * opener.osk.xi;
+    let gm = open::init_gm(GMId::One, &mut rng).await;
+    let expect = gm.gpk.h * gm.gsk.xi * gm.gsk.xi;
 
     assert_eq!(pubkey, expect);
 }

@@ -1,7 +1,7 @@
 #[macro_use]
 extern crate rbatis;
 
-use crate::open::init_opener;
+use crate::open::init_gm;
 use actix_session::CookieSession;
 use actix_web::{web, App, HttpServer};
 
@@ -11,6 +11,7 @@ mod db;
 mod handler;
 mod open;
 mod tests;
+mod utils;
 
 use std::io;
 
@@ -27,7 +28,10 @@ async fn main() -> io::Result<()> {
         App::new()
             .wrap(CookieSession::private(&key).secure(true))
             .route("/pubkey", web::post().to(handler::pubkey))
-            .route("/req_sign", web::post().to(handler::generate_signed_pubkey))
+            .route(
+                "/req_sign",
+                web::post().to(handler::generate_combined_pubkey),
+            )
     })
     .bind("0.0.0.0:8080")?
     .run()
