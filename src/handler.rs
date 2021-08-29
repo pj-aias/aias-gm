@@ -3,14 +3,16 @@ use crate::gm::CombinedGPKWithoutPartials;
 use crate::init_gm;
 use crate::utils::encode;
 use crate::utils::joined_domains;
+use actix_session::Session;
 use actix_web::{web, HttpResponse};
 use bls12_381::G2Projective;
-use distributed_bss::gm::GMId;
-use rand::thread_rng;
-use rbatis::crud::CRUD;
-
 use distributed_bss::gm::CombinedPubkey;
+use distributed_bss::gm::GMId;
 use distributed_bss::PartialUSK;
+use rand::distributions::Alphanumeric;
+use rand::thread_rng;
+use rand::Rng;
+use rbatis::crud::CRUD;
 
 use crate::gm;
 
@@ -42,6 +44,11 @@ pub struct IssueMemberResp {
 pub struct IssueMemberReq {
     pub cert: String,
     pub domains: Vec<String>,
+}
+
+#[derive(Deserialize, Serialize)]
+pub struct GenerateChallengeResp {
+    pub nonce: String,
 }
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -93,9 +100,29 @@ pub async fn generate_combined_pubkey(
         .await
 }
 
+pub async fn generate_challenge(session: Session) -> Result<HttpResponse, actix_web::Error> {
+    let nonce: String = thread_rng()
+        .sample_iter(&Alphanumeric)
+        .take(32)
+        .map(char::from)
+        .collect();
+
+    match session.set("nonce", nonce.clone()) {
+        Ok(_) => {
+            HttpResponse::Ok()
+                .json(GenerateChallengeResp { nonce })
+                .await
+        }
+        Err(_) => panic!("todo fix"),
+    }
+}
+
 pub async fn issue_member(
     req: web::Json<IssueMemberReq>,
+    session: Session,
 ) -> Result<HttpResponse, actix_web::Error> {
+    let expect = session.get::<String>("nonce")?;
+
     let rb = db::init_db().await;
     let mut rng = thread_rng();
 
