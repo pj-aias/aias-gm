@@ -1,15 +1,15 @@
 #[macro_use]
 extern crate rbatis;
 
-use crate::open::init_gm;
+use crate::gm::init_gm;
 use actix_session::CookieSession;
 use actix_web::{web, App, HttpServer};
 
 use rand::Rng;
 
 mod db;
+mod gm;
 mod handler;
-mod open;
 mod tests;
 mod utils;
 

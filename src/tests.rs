@@ -8,8 +8,8 @@ use actix_web::{web, App};
 use distributed_bss::gm::GMId;
 use rand::thread_rng;
 
+use crate::gm;
 use crate::handler;
-use crate::open;
 
 use std::process::Command;
 
@@ -54,7 +54,7 @@ async fn test_app() {
     let pubkey = str_to_g1(&pubkey);
 
     let mut rng = thread_rng();
-    let gm = open::init_gm(GMId::One, &mut rng).await;
+    let gm = gm::init_gm(GMId::One, &mut rng).await;
     let expect = gm.gpk.h * gm.gsk.xi * gm.gsk.xi;
 
     assert_eq!(pubkey, expect);

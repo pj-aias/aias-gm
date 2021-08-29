@@ -6,7 +6,7 @@ use rand::thread_rng;
 
 use distributed_bss::gm::CombinedPubkey;
 
-use crate::open;
+use crate::gm;
 
 use crate::rbatis::crud::CRUD;
 use serde::{Deserialize, Serialize};
@@ -53,7 +53,7 @@ pub async fn pubkey(gms: web::Json<GetPubkeyReq>) -> Result<HttpResponse, actix_
         .await
     {
         Ok(cred) => cred.pubkey.unwrap(),
-        Err(_) => open::gen_pubkey(&gms.gms, &rb).await,
+        Err(_) => gm::gen_pubkey(&gms.gms, &rb).await,
     };
 
     HttpResponse::Ok()
