@@ -12,10 +12,11 @@ Cargo.lock
 
 # Added by cargo
 
-/target
+/app/target
 
 # DB
 *.db*
 *.log
 
 
+/data

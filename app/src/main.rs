@@ -1,17 +1,23 @@
 #[macro_use]
 extern crate rbatis;
 
-use crate::open::init_opener;
+use crate::challenge::generate_challenge;
+use crate::combine::generate_combined_pubkey;
+use crate::gm::init_gm;
+use crate::issue::issue_member;
+use crate::pubkey::pubkey;
 use actix_session::CookieSession;
 use actix_web::{web, App, HttpServer};
 
 use rand::Rng;
 
 mod db;
-mod handler;
-mod open;
+mod gm;
+mod handlers;
 mod tests;
+mod utils;
 
+use crate::handlers::*;
 use std::io;
 
 #[actix_rt::main]
@@ -26,8 +32,10 @@ async fn main() -> io::Result<()> {
     HttpServer::new(move || {
         App::new()
             .wrap(CookieSession::private(&key).secure(true))
-            .route("/pubkey", web::post().to(handler::pubkey))
-            .route("/req_sign", web::post().to(handler::generate_signed_pubkey))
+            .route("/pubkey", web::post().to(pubkey))
+            .route("/combine", web::post().to(generate_combined_pubkey))
+            .route("/challenge", web::get().to(generate_challenge))
+            .route("/issue", web::post().to(issue_member))
     })
     .bind("0.0.0.0:8080")?
     .run()

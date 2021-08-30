@@ -1,2 +1,2 @@
-# aias-opener
-Opener entity of AIAS project.
+# aias-gm
+Group Manager of AIAS project.
