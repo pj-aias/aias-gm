@@ -124,26 +124,27 @@ async fn test_generate_usk() {
     println!("result : {:}", body);
 }
 
-// #[test]
-// fn test_generate_test_issuer_req() {
-//     let nonce = "hogehoge".to_string();
+#[test]
+fn test_generate_test_issuer_req() {
+    let nonce = "hogehoge".to_string();
 
-//     let domains = [
-//         "localhost:8081".to_string(),
-//         "localhost:8081".to_string(),
-//         "localhost:8081".to_string(),
-//     ]
-//     .to_vec();
+    let domains = [
+        "localhost:8081".to_string(),
+        "localhost:8081".to_string(),
+        "localhost:8081".to_string(),
+    ]
+    .to_vec();
 
-//     generate_test_issuer_req(&nonce, &domains);
-// }
+    generate_test_issuer_req(&nonce, &domains);
+}
 
 fn generate_test_issuer_req(nonce: &String, domains: &[String]) -> IssueMemberReq {
     // set up issuer
     let issuer_privkey = Rsa::generate(2048).unwrap();
     let issuer_pubkey = PKey::from_rsa(issuer_privkey).expect("key generation error");
     let issuer_pubkey_pem = issuer_pubkey.public_key_to_pem().unwrap();
-    let issuer_pubkey_pem = base64::encode(&issuer_pubkey_pem);
+    // let issuer_pubkey_pem = base64::encode(&issuer_pubkey_pem);
+    let issuer_pubkey_pem = String::from_utf8(issuer_pubkey_pem).expect("hogehoge");
 
     env::set_var("AIAS_ISSUER_PUBKEY", issuer_pubkey_pem);
 
@@ -151,7 +152,8 @@ fn generate_test_issuer_req(nonce: &String, domains: &[String]) -> IssueMemberRe
     let user_privkey = Rsa::generate(2048).unwrap();
     let user_pubkey = PKey::from_rsa(user_privkey).expect("key generation error");
     let user_pubkey_pem = user_pubkey.public_key_to_pem().unwrap();
-    let user_pubkey_pem = base64::encode(&user_pubkey_pem);
+    // let user_pubkey_pem = base64::encode(&user_pubkey_pem);
+    let user_pubkey_pem = String::from_utf8(user_pubkey_pem).unwrap();
 
     // set up signature
     let mut signer = Signer::new(MessageDigest::sha256(), &user_pubkey).expect("sign error");

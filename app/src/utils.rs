@@ -60,9 +60,8 @@ pub fn get_gm_index_from_domains(gms: &[String]) -> usize {
 
 pub fn verify(signature: &String, msg: &String, pubkey: &String) -> bool {
     let bin_signature = base64::decode(signature).expect("base64 decode error");
-    let bin_pubkey = base64::decode(pubkey).expect("pem decode error");
-    let keypair = PKey::public_key_from_pem(&bin_pubkey).expect("pem decode error");
 
+    let keypair = PKey::public_key_from_pem(&pubkey.as_ref()).expect("pem decode error");
     let mut verifier = Verifier::new(MessageDigest::sha256(), &keypair).unwrap();
     verifier.update(msg.as_bytes()).unwrap();
 
