@@ -35,8 +35,6 @@ pub async fn issue_member(
     session: Session,
 ) -> Result<HttpResponse, WebError> {
     let nonce = session.get::<String>("nonce")?.expect("nonce is not found");
-    println!("nonce2: {}", nonce);
-
     if !verify(&req.signature, &nonce, &req.pubkey) {
         return HttpResponse::Unauthorized().json({}).await;
     }
