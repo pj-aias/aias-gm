@@ -7,9 +7,11 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-actix-web = "3"
+actix-web = "2"
 actix-session = "0.4.1"
 actix-rt = "1"
+actix-connect = "1.0.2"
+actix-socks = { git = "https://github.com/pj-aias/actix-socks.git", branch = "master" }
 rand = "0.8.4"
 
 serde = { version = "1", features = ["derive"] }

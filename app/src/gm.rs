@@ -117,6 +117,22 @@ pub async fn communicate_to_gen_pubkey(
             continue;
         }
 
+        let client = actix_web::client::ClientBuilder::new()
+            .connector(
+                actix_web::client::Connector::new()
+                    .connector(actix_socks::SocksConnector::new("tor:9050"))
+                    .timeout(std::time::Duration::from_secs(60))
+                    .finish(),
+            )
+            .finish();
+        let res = client
+            .get("http://facebookcorewwwi.onion")
+            .send()
+            .await
+            .unwrap();
+        println!("{:?}", res);
+
+        // old
         let req = SignPubkeyReq {
             domains: domains.clone(),
             unsigned_pubkey: unsigned_pubkey,
@@ -134,6 +150,7 @@ pub async fn communicate_to_gen_pubkey(
             .json::<SignPubkeyResp>()
             .await
             .expect("parse error");
+        // old end
 
         unsigned_pubkey = resp.signed_pubkey;
         pubkeys.push(unsigned_pubkey);
