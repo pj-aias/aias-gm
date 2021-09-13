@@ -125,23 +125,11 @@ pub async fn communicate_to_gen_pubkey(
                     .finish(),
             )
             .finish();
-        let res = client
-            .get("http://facebookcorewwwi.onion")
-            .send()
-            .await
-            .unwrap();
-        println!("{:?}", res);
-
-        // old
+        let url = format!("http://{}/combine", gm_domain);
         let req = SignPubkeyReq {
             domains: domains.clone(),
             unsigned_pubkey: unsigned_pubkey,
         };
-
-        let url = format!("http://{}/combine", gm_domain);
-
-        let client = Client::new();
-
         let resp = client
             .post(url)
             .send_json(&req)
@@ -150,7 +138,6 @@ pub async fn communicate_to_gen_pubkey(
             .json::<SignPubkeyResp>()
             .await
             .expect("parse error");
-        // old end
 
         unsigned_pubkey = resp.signed_pubkey;
         pubkeys.push(unsigned_pubkey);
