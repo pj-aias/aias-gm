@@ -7,6 +7,7 @@ use crate::gm::init_gm;
 use crate::issue::issue_member;
 use crate::pubkey::pubkey;
 use actix_session::CookieSession;
+use actix_web::HttpResponse;
 use actix_web::{web, App, HttpServer};
 
 use rand::Rng;
@@ -32,6 +33,7 @@ async fn main() -> io::Result<()> {
     HttpServer::new(move || {
         App::new()
             .wrap(CookieSession::private(&key).secure(true))
+            .route("/", web::get().to(test_root))
             .route("/pubkey", web::post().to(pubkey))
             .route("/combine", web::post().to(generate_combined_pubkey))
             .route("/challenge", web::get().to(generate_challenge))
@@ -40,4 +42,8 @@ async fn main() -> io::Result<()> {
     .bind("0.0.0.0:8080")?
     .run()
     .await
+}
+
+pub async fn test_root() -> Result<HttpResponse, actix_web::Error> {
+    HttpResponse::Ok().json("ok").await
 }
