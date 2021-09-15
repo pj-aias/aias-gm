@@ -30,6 +30,9 @@ pub async fn init_gm(id: GMId, rng: &mut impl Rng) -> GM {
     let sec1 = env::var("AIAS_OPENER_SECRET_KEY1").unwrap_or("".to_string());
     let sec2 = env::var("AIAS_OPENER_SECRET_KEY2").unwrap_or("".to_string());
 
+    println!("AIAS_OPENER_SECRET_KEY1={}", sec1);
+    println!("AIAS_OPENER_SECRET_KEY2={}", sec2);
+
     if sec1.is_empty() || sec2.is_empty() {
         // generate new gm
         let gm = GM::random(id, rng);
@@ -38,6 +41,9 @@ pub async fn init_gm(id: GMId, rng: &mut impl Rng) -> GM {
 
         let sec2 = rmp_serde::to_vec(&gm.gsk.gamma).expect("MessagePack encode error");
         let sec2 = base64::encode(&sec2);
+
+        println!("AIAS_OPENER_SECRET_KEY1={}", sec1);
+        println!("AIAS_OPENER_SECRET_KEY2={}", sec2);
 
         env::set_var("AIAS_OPENER_SECRET_KEY1", sec1);
         env::set_var("AIAS_OPENER_SECRET_KEY2", sec2);

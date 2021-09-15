@@ -63,25 +63,22 @@ async fn test_pubkey() {
     let url = format!("http://{}/pubkey", domain);
     println!("{}", url.to_string());
 
-    let mut resp = client
+    let resp = client
         .post(url)
         .send_json(&gms)
         .await
         .expect("request error")
-        // .json::<GetPubkeyResp>()
-        // .await
-        // .unwrap();
-    ;
+        .json::<GetPubkeyResp>()
+        .await
+        .unwrap();
 
-    // let data = resp.body().await.unwrap();
-    println!("{:?}", resp.status());
-    // let h = resp.combined.h;
+    let h = resp.combined.h;
 
-    // let mut rng = thread_rng();
-    // let gm = gm::init_gm(GMId::One, &mut rng).await;
-    // let expect = gm.gpk.h * gm.gsk.xi * gm.gsk.xi;
+    let mut rng = thread_rng();
+    let gm = gm::init_gm(GMId::One, &mut rng).await;
+    let expect = gm.gpk.h * gm.gsk.xi * gm.gsk.xi;
 
-    // assert_eq!(h, expect);
+    assert_eq!(h, expect);
 
     // Command::new("docker-compose")
     //     .args(&["down", "-d"])
