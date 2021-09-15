@@ -121,10 +121,12 @@ pub async fn communicate_to_gen_pubkey(
             .connector(
                 actix_web::client::Connector::new()
                     .connector(actix_socks::SocksConnector::new("tor:9050"))
-                    .timeout(std::time::Duration::from_secs(6000))
+                    .timeout(std::time::Duration::from_secs(60))
                     .finish(),
             )
+            .timeout(std::time::Duration::from_secs(60))
             .finish();
+
         let url = format!("http://{}/combine", gm_domain);
         let req = SignPubkeyReq {
             domains: domains.clone(),

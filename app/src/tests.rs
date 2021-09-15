@@ -54,9 +54,10 @@ async fn test_pubkey() {
         .connector(
             actix_web::client::Connector::new()
                 .connector(actix_socks::SocksConnector::new("localhost:9050"))
-                .timeout(std::time::Duration::from_secs(6000))
+                .timeout(std::time::Duration::from_secs(60))
                 .finish(),
         )
+        .timeout(std::time::Duration::from_secs(60))
         .finish();
 
     let url = format!("http://{}/pubkey", domain);
