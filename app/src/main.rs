@@ -15,8 +15,10 @@ use rand::Rng;
 mod db;
 mod gm;
 mod handlers;
-mod tests;
 mod utils;
+
+#[cfg(test)]
+mod tests;
 
 use crate::handlers::*;
 use std::io;
