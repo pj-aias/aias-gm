@@ -1,15 +1,12 @@
-// use crate::gm::CombinedGPKWithoutPartials;
-use distributed_bss::gm::GMId;
-use openssl::pkey::Public;
-use openssl::rsa::Rsa;
-use serde::Serialize;
+use std::env;
 
+use distributed_bss::gm::GMId;
 use openssl::hash::MessageDigest;
 use openssl::pkey::PKey;
-
+use openssl::pkey::Public;
+use openssl::rsa::Rsa;
 use openssl::sign::Verifier;
-
-use std::env;
+use serde::Serialize;
 
 pub fn encode<T>(point: &T) -> String
 where

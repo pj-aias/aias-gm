@@ -1,24 +1,11 @@
-use crate::gm::init_gm_from_domains;
-use crate::gm::CombinedGPKWithoutPartials;
-
-
-
-
-
-
 use actix_web::{web, HttpResponse};
 use bls12_381::G2Projective;
-
-
-
-
 use rand::thread_rng;
-
-
+use serde::{Deserialize, Serialize};
 
 use crate::gm;
-
-use serde::{Deserialize, Serialize};
+use crate::gm::init_gm_from_domains;
+use crate::gm::CombinedGPKWithoutPartials;
 
 #[derive(Deserialize, Serialize)]
 pub struct GetPubkeyReq {

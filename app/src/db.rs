@@ -1,7 +1,8 @@
-use crate::rbatis::executor::Executor;
+use std::env;
 
 use rbatis::rbatis::Rbatis;
-use std::env;
+
+use crate::rbatis::executor::Executor;
 
 #[crud_table(table_name:"publickeys")]
 #[derive(Clone, Debug)]

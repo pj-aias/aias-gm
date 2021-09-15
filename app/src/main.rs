@@ -1,17 +1,3 @@
-#[macro_use]
-extern crate rbatis;
-
-use crate::challenge::generate_challenge;
-use crate::combine::generate_combined_pubkey;
-use crate::gm::init_gm;
-use crate::issue::issue_member;
-use crate::pubkey::pubkey;
-use actix_session::CookieSession;
-use actix_web::HttpResponse;
-use actix_web::{web, App, HttpServer};
-
-use rand::Rng;
-
 mod db;
 mod gm;
 mod handlers;
@@ -20,8 +6,22 @@ mod utils;
 #[cfg(test)]
 mod tests;
 
-use crate::handlers::*;
+#[macro_use]
+extern crate rbatis;
+
 use std::io;
+
+use actix_session::CookieSession;
+use actix_web::HttpResponse;
+use actix_web::{web, App, HttpServer};
+use rand::Rng;
+
+use crate::challenge::generate_challenge;
+use crate::combine::generate_combined_pubkey;
+use crate::gm::init_gm;
+use crate::handlers::*;
+use crate::issue::issue_member;
+use crate::pubkey::pubkey;
 
 #[actix_rt::main]
 async fn main() -> io::Result<()> {

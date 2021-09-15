@@ -1,25 +1,10 @@
-
-
-use crate::init_gm;
-
-
-
-
-
 use actix_web::{web, HttpResponse};
-
 use distributed_bss::gm::CombinedPubkey;
 use distributed_bss::gm::GMId;
-
-
 use rand::thread_rng;
-
-
-
-
-
-
 use serde::{Deserialize, Serialize};
+
+use crate::init_gm;
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct SignPubkeyReq {

@@ -1,10 +1,8 @@
 use actix_session::Session;
 use actix_web::HttpResponse;
-
 use rand::distributions::Alphanumeric;
 use rand::thread_rng;
 use rand::Rng;
-
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize)]

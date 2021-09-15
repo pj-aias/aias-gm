@@ -1,13 +1,6 @@
-use crate::challenge::GenerateChallengeResp;
-use crate::generate_challenge;
-use crate::issue::IssueMemberReq;
-use crate::issue_member;
-use crate::utils::verify;
-use crate::utils::verify_issuer_cert;
+use std::env;
+use std::process::Command;
 
-use crate::gm;
-use crate::pubkey::GetPubkeyReq;
-use crate::pubkey::GetPubkeyResp;
 use actix_session::CookieSession;
 use actix_web::{test, web, App};
 use distributed_bss::gm::GMId;
@@ -18,8 +11,15 @@ use openssl::sign::Signer;
 use rand::thread_rng;
 use serde_json;
 
-use std::env;
-use std::process::Command;
+use crate::challenge::GenerateChallengeResp;
+use crate::generate_challenge;
+use crate::gm;
+use crate::issue::IssueMemberReq;
+use crate::issue_member;
+use crate::pubkey::GetPubkeyReq;
+use crate::pubkey::GetPubkeyResp;
+use crate::utils::verify;
+use crate::utils::verify_issuer_cert;
 
 #[actix_rt::test]
 async fn test_pubkey() {

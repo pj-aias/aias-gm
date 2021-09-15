@@ -1,21 +1,21 @@
-use crate::combine::SignPubkeyReq;
-use crate::combine::SignPubkeyResp;
-use crate::rbatis::crud::CRUD;
-use crate::utils::encode;
-use crate::utils::get_gm_index_from_domains;
-use crate::utils::gm_id;
-use crate::utils::joined_domains;
+use std::env;
+
 use bls12_381::G1Projective;
 use bls12_381::Scalar;
 use distributed_bss::gm::CombinedPubkey;
 use distributed_bss::gm::{GMId, GM};
 use rand::Rng;
 use rbatis::rbatis::Rbatis;
-use std::env;
-
-use crate::db;
-
 use serde::{Deserialize, Serialize};
+
+use crate::combine::SignPubkeyReq;
+use crate::combine::SignPubkeyResp;
+use crate::db;
+use crate::rbatis::crud::CRUD;
+use crate::utils::encode;
+use crate::utils::get_gm_index_from_domains;
+use crate::utils::gm_id;
+use crate::utils::joined_domains;
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct CombinedGPKWithoutPartials {
