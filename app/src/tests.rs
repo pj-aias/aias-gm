@@ -28,27 +28,16 @@ use std::process::Command;
 #[actix_rt::test]
 async fn test_pubkey() {
     Command::new("touch").args(&["aias.db"]).output().unwrap();
-    // Command::new("docker-compose")
-    //     .args(&["up", "-d"])
-    //     .output()
-    //     .unwrap();
+    Command::new("docker-compose")
+        .args(&["up", "-d"])
+        .output()
+        .unwrap();
 
     let domain = env::var("AIAS_OPENER_DOMAIN").expect("not set AIAS_OPENER_DOMAIN");
-    // let tor_host = env::var("TOR_DOMAIN").expect("not set TOR_DOMAIN").to_string();
 
     let gms = GetPubkeyReq {
         domains: [domain.to_string(), domain.to_string(), domain.to_string()].to_vec(),
     };
-
-    // let server = HttpServer::new(move || {
-    //     App::new()
-    //         .wrap(CookieSession::private(&[0; 32]).secure(true))
-    //         .route("/pubkey", web::post().to(pubkey))
-    //         .route("/combine", web::post().to(generate_combined_pubkey))
-    // })
-    // .bind("0.0.0.0:8080")
-    // .expect("run server error")
-    // .run();
 
     let client = actix_web::client::ClientBuilder::new()
         .connector(
@@ -80,10 +69,10 @@ async fn test_pubkey() {
 
     assert_eq!(h, expect);
 
-    // Command::new("docker-compose")
-    //     .args(&["down", "-d"])
-    //     .output()
-    //     .unwrap();
+    Command::new("docker-compose")
+        .args(&["down"])
+        .output()
+        .unwrap();
 }
 
 #[actix_rt::test]
