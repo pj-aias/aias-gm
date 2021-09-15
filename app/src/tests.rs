@@ -28,30 +28,32 @@ use std::process::Command;
 #[actix_rt::test]
 async fn test_pubkey() {
     Command::new("touch").args(&["aias.db"]).output().unwrap();
+    Command::new("docker-compose")
+        .args(&["up", "-d"])
+        .output()
+        .unwrap();
+
+    let domain = env::var("AIAS_OPENER_DOMAIN").expect("not set AIAS_OPENER_DOMAIN");
 
     let gms = GetPubkeyReq {
-        domains: [
-            "localhost:8080".to_string(),
-            "localhost:8080".to_string(),
-            "localhost:8080".to_string(),
-        ]
-        .to_vec(),
+        domains: [domain.to_string(), domain.to_string(), domain.to_string()].to_vec(),
     };
 
-    let server = HttpServer::new(move || {
-        App::new()
-            .wrap(CookieSession::private(&[0; 32]).secure(true))
-            .route("/pubkey", web::post().to(pubkey))
-            .route("/combine", web::post().to(generate_combined_pubkey))
-    })
-    .bind("0.0.0.0:8080")
-    .expect("run server error")
-    .run();
+    let client = actix_web::client::ClientBuilder::new()
+        .connector(
+            actix_web::client::Connector::new()
+                .connector(actix_socks::SocksConnector::new("localhost:9050"))
+                .timeout(std::time::Duration::from_secs(60))
+                .finish(),
+        )
+        .timeout(std::time::Duration::from_secs(60))
+        .finish();
 
-    let client = Client::new();
+    let url = format!("http://{}/pubkey", domain);
+    println!("{}", url.to_string());
 
     let resp = client
-        .post("http://localhost:8080/pubkey")
+        .post(url)
         .send_json(&gms)
         .await
         .expect("request error")
@@ -67,19 +69,18 @@ async fn test_pubkey() {
 
     assert_eq!(h, expect);
 
-    server.stop(true).await;
+    Command::new("docker-compose")
+        .args(&["down"])
+        .output()
+        .unwrap();
 }
 
 #[actix_rt::test]
 async fn test_generate_usk() {
     Command::new("touch").args(&["aias.db"]).output().unwrap();
+    let domain = env::var("AIAS_OPENER_DOMAIN").expect("not set AIAS_OPENER_DOMAIN");
 
-    let domains = [
-        "localhost:8080".to_string(),
-        "localhost:8080".to_string(),
-        "localhost:8080".to_string(),
-    ]
-    .to_vec();
+    let domains = [domain.clone(), domain.clone(), domain].to_vec();
 
     let mut app = test::init_service(
         App::new()
@@ -124,6 +125,9 @@ async fn test_generate_usk() {
     println!("result : {:}", body);
 }
 
+// note: do not run test_generate_test_issuer_req
+// and generate_test_issuer_req same time
+// because conflict enviroment variable
 // #[test]
 // fn test_generate_test_issuer_req() {
 //     let nonce = "hogehoge".to_string();
@@ -143,7 +147,8 @@ fn generate_test_issuer_req(nonce: &String, domains: &[String]) -> IssueMemberRe
     let issuer_privkey = Rsa::generate(2048).unwrap();
     let issuer_pubkey = PKey::from_rsa(issuer_privkey).expect("key generation error");
     let issuer_pubkey_pem = issuer_pubkey.public_key_to_pem().unwrap();
-    let issuer_pubkey_pem = base64::encode(&issuer_pubkey_pem);
+    // let issuer_pubkey_pem = base64::encode(&issuer_pubkey_pem);
+    let issuer_pubkey_pem = String::from_utf8(issuer_pubkey_pem).expect("hogehoge");
 
     env::set_var("AIAS_ISSUER_PUBKEY", issuer_pubkey_pem);
 
@@ -151,7 +156,8 @@ fn generate_test_issuer_req(nonce: &String, domains: &[String]) -> IssueMemberRe
     let user_privkey = Rsa::generate(2048).unwrap();
     let user_pubkey = PKey::from_rsa(user_privkey).expect("key generation error");
     let user_pubkey_pem = user_pubkey.public_key_to_pem().unwrap();
-    let user_pubkey_pem = base64::encode(&user_pubkey_pem);
+    // let user_pubkey_pem = base64::encode(&user_pubkey_pem);
+    let user_pubkey_pem = String::from_utf8(user_pubkey_pem).unwrap();
 
     // set up signature
     let mut signer = Signer::new(MessageDigest::sha256(), &user_pubkey).expect("sign error");

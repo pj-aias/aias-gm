@@ -30,6 +30,9 @@ pub async fn init_gm(id: GMId, rng: &mut impl Rng) -> GM {
     let sec1 = env::var("AIAS_OPENER_SECRET_KEY1").unwrap_or("".to_string());
     let sec2 = env::var("AIAS_OPENER_SECRET_KEY2").unwrap_or("".to_string());
 
+    println!("AIAS_OPENER_SECRET_KEY1={}", sec1);
+    println!("AIAS_OPENER_SECRET_KEY2={}", sec2);
+
     if sec1.is_empty() || sec2.is_empty() {
         // generate new gm
         let gm = GM::random(id, rng);
@@ -38,6 +41,9 @@ pub async fn init_gm(id: GMId, rng: &mut impl Rng) -> GM {
 
         let sec2 = rmp_serde::to_vec(&gm.gsk.gamma).expect("MessagePack encode error");
         let sec2 = base64::encode(&sec2);
+
+        println!("AIAS_OPENER_SECRET_KEY1={}", sec1);
+        println!("AIAS_OPENER_SECRET_KEY2={}", sec2);
 
         env::set_var("AIAS_OPENER_SECRET_KEY1", sec1);
         env::set_var("AIAS_OPENER_SECRET_KEY2", sec2);
@@ -117,15 +123,21 @@ pub async fn communicate_to_gen_pubkey(
             continue;
         }
 
+        let client = actix_web::client::ClientBuilder::new()
+            .connector(
+                actix_web::client::Connector::new()
+                    .connector(actix_socks::SocksConnector::new("tor:9050"))
+                    .timeout(std::time::Duration::from_secs(60))
+                    .finish(),
+            )
+            .timeout(std::time::Duration::from_secs(60))
+            .finish();
+
+        let url = format!("http://{}/combine", gm_domain);
         let req = SignPubkeyReq {
             domains: domains.clone(),
             unsigned_pubkey: unsigned_pubkey,
         };
-
-        let url = format!("http://{}/combine", gm_domain);
-
-        let client = Client::new();
-
         let resp = client
             .post(url)
             .send_json(&req)

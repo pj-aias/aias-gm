@@ -1,5 +1,7 @@
 // use crate::gm::CombinedGPKWithoutPartials;
 use distributed_bss::gm::GMId;
+use openssl::pkey::Public;
+use openssl::rsa::Rsa;
 use serde::Serialize;
 
 use openssl::hash::MessageDigest;
@@ -58,12 +60,24 @@ pub fn get_gm_index_from_domains(gms: &[String]) -> usize {
     return index + 1;
 }
 
-pub fn verify(signature: &String, msg: &String, pubkey: &String) -> bool {
-    let bin_signature = base64::decode(signature).expect("base64 decode error");
-    let bin_pubkey = base64::decode(pubkey).expect("pem decode error");
-    let keypair = PKey::public_key_from_pem(&bin_pubkey).expect("pem decode error");
+pub fn get_pubkey(pubkey: &String) -> PKey<Public> {
+    let is_pkcs1 = pubkey.find("RSA PUBLIC KEY");
 
-    let mut verifier = Verifier::new(MessageDigest::sha256(), &keypair).unwrap();
+    if is_pkcs1 == None {
+        PKey::public_key_from_pem(&pubkey.as_bytes()).expect("pem decode error")
+    } else {
+        let rsakey = Rsa::public_key_from_pem_pkcs1(&pubkey.as_bytes()).expect("pkcs decode error");
+        PKey::from_rsa(rsakey).expect("error convert pkcs")
+    }
+}
+
+pub fn verify(signature: &String, msg: &String, pubkey: &String) -> bool {
+    println!("signature: {}\npubkey: {}\nmsg: {}", signature, pubkey, msg);
+
+    let bin_signature = base64::decode(signature).expect("base64 decode error");
+
+    let pubkey = get_pubkey(pubkey);
+    let mut verifier = Verifier::new(MessageDigest::sha256(), &pubkey).unwrap();
     verifier.update(msg.as_bytes()).unwrap();
 
     verifier.verify(&bin_signature).unwrap()

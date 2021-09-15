@@ -5,10 +5,12 @@ services:
         working_dir: /app
         volumes:
             - ./app:/app
+            - ./data/app/registry:/usr/local/cargo/registry/
         ports: 
             - 8080:8080
-
         tty: true
+        env_file: 
+            - ./.env
     tor:
         build: ./tor
         ports:
