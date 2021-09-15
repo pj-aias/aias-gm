@@ -1,5 +1,4 @@
 use crate::challenge::GenerateChallengeResp;
-use crate::combine::generate_combined_pubkey;
 use crate::generate_challenge;
 use crate::issue::IssueMemberReq;
 use crate::issue_member;
@@ -7,12 +6,9 @@ use crate::utils::verify;
 use crate::utils::verify_issuer_cert;
 
 use crate::gm;
-use crate::pubkey::pubkey;
 use crate::pubkey::GetPubkeyReq;
 use crate::pubkey::GetPubkeyResp;
 use actix_session::CookieSession;
-use actix_web::client::Client;
-use actix_web::HttpServer;
 use actix_web::{test, web, App};
 use distributed_bss::gm::GMId;
 use openssl::hash::MessageDigest;
