@@ -125,6 +125,9 @@ async fn test_generate_usk() {
     println!("result : {:}", body);
 }
 
+// note: do not run test_generate_test_issuer_req
+// and generate_test_issuer_req same time
+// because conflict enviroment variable
 // #[test]
 // fn test_generate_test_issuer_req() {
 //     let nonce = "hogehoge".to_string();
