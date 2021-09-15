@@ -39,6 +39,8 @@ async fn main() -> io::Result<()> {
             .route("/challenge", web::get().to(generate_challenge))
             .route("/issue", web::post().to(issue_member))
     })
+    .workers(128)
+    .shutdown_timeout(60)
     .bind("0.0.0.0:8080")?
     .run()
     .await

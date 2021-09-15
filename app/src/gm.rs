@@ -121,7 +121,7 @@ pub async fn communicate_to_gen_pubkey(
             .connector(
                 actix_web::client::Connector::new()
                     .connector(actix_socks::SocksConnector::new("tor:9050"))
-                    .timeout(std::time::Duration::from_secs(60))
+                    .timeout(std::time::Duration::from_secs(6000))
                     .finish(),
             )
             .finish();
