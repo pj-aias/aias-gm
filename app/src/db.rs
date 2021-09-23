@@ -37,7 +37,7 @@ pub async fn init_db() -> Rbatis {
                 pubkey TEXT,
                 gm_id INTEGER
             )",
-        &vec![],
+        vec![],
     )
     .await
     .expect("Error creating table");
@@ -50,7 +50,7 @@ pub async fn init_db() -> Rbatis {
                 cert TEXT,
                 usk TEXT
             )",
-        &vec![],
+        vec![],
     )
     .await
     .expect("Error creating");
