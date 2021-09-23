@@ -19,7 +19,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize)]
 pub struct IssueMemberResp {
-    pub partical_usk: PartialUSK,
+    pub partial_usk: PartialUSK,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -47,7 +47,7 @@ pub async fn issue_member(
     let mut rng = thread_rng();
 
     let gm = init_gm_from_domains(&req.domains, &mut rng).await;
-    let partical_usk = gm.issue_member(&mut rng);
+    let partial_usk = gm.issue_member(&mut rng);
 
     // let encode_usk = encode(&partical_usk);
 
@@ -66,6 +66,6 @@ pub async fn issue_member(
     .expect("Error DB");
 
     HttpResponse::Ok()
-        .json(IssueMemberResp { partical_usk })
+        .json(IssueMemberResp { partial_usk })
         .await
 }
