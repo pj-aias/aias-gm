@@ -1,20 +1,11 @@
 use crate::gm::init_gm_from_domains;
 use crate::gm::CombinedGPKWithoutPartials;
-
-
-
-
-
+use distributed_bss::PartialGPK;
 
 use actix_web::{web, HttpResponse};
 use bls12_381::G2Projective;
 
-
-
-
 use rand::thread_rng;
-
-
 
 use crate::gm;
 
@@ -28,7 +19,7 @@ pub struct GetPubkeyReq {
 #[derive(Deserialize, Serialize)]
 pub struct GetPubkeyResp {
     pub combined: CombinedGPKWithoutPartials,
-    pub partial: G2Projective,
+    pub partial: PartialGPK,
 }
 
 use crate::db;
@@ -47,7 +38,7 @@ pub async fn pubkey(domains: web::Json<GetPubkeyReq>) -> Result<HttpResponse, ac
         .await
         .expect("errro generate pubkey");
 
-    let partial = gm.gpk.omega;
+    let partial = gm.gpk;
 
     HttpResponse::Ok()
         .json(GetPubkeyResp { combined, partial })
