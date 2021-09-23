@@ -115,11 +115,13 @@ pub async fn communicate_to_gen_pubkey(
     domains: &Vec<String>,
     unsigned_pubkey: &CombinedPubkey,
 ) -> Vec<CombinedPubkey> {
+    let domain = env::var("AIAS_OPENER_DOMAIN").expect("not set AIAS_OPENER_DOMAIN");
+
     let mut pubkeys = vec![];
 
     let mut unsigned_pubkey = *unsigned_pubkey;
     for (index, gm_domain) in domains.iter().enumerate() {
-        if gm.id as usize == index {
+        if gm_domain == &domain {
             continue;
         }
 
@@ -148,7 +150,8 @@ pub async fn communicate_to_gen_pubkey(
             .expect("parse error");
 
         unsigned_pubkey = resp.signed_pubkey;
-        pubkeys.push(unsigned_pubkey);
+        pubkeys.push(unsigned_pubkey.clone());
+        println!("{}, {}, {}\n", index, gm_domain, unsigned_pubkey);
     }
 
     pubkeys
